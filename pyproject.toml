@@ -2,4 +2,16 @@
 name = "fineprint"
 version = "0.1.0"
 requires-python = ">=3.12.2"
-dependencies = []
+dependencies = [
+    "fastapi>=0.139.0",
+    "uvicorn[standard]>=0.51.0",
+]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.15.21",
+]
