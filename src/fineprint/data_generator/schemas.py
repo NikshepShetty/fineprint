@@ -1,5 +1,6 @@
 from datetime import date, timedelta
-from typing import Optional, Literal
+from typing import Literal
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -8,7 +9,7 @@ class Vendor(BaseModel):
     name: str
     payment_behavior: Literal["reliable", "occasionally_late", "chronically_late"]
     avg_days_late_historical: float = Field(ge=0)
-    industry: Optional[str] = None
+    industry: str | None = None
 
 
 class Invoice(BaseModel):
@@ -32,7 +33,6 @@ class Invoice(BaseModel):
         return self
 
 
-# Risk weight per clause type
 CLAUSE_RISK_WEIGHTS: dict[str, int] = {
     "auto_renewal": 20,
     "unlimited_liability": 30,

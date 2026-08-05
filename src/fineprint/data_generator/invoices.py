@@ -1,11 +1,10 @@
 import random
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fineprint.data_generator.schemas import Invoice, Vendor
 
 PAYMENT_TERMS_OPTIONS = [15, 30, 45, 60, 90]
 
-# Standard deviation of noise added around each vendor's average lateness
 LATENESS_STD_DEV = 5.0
 
 ISSUE_DATE_WINDOW_DAYS = 365
@@ -15,7 +14,7 @@ def generate_invoices(
     vendors: list[Vendor], n: int = 500, seed: int | None = None
 ) -> list[Invoice]:
     rng = random.Random(seed)
-    today = date.today()
+    today = datetime.now(UTC).date()
 
     invoices: list[Invoice] = []
     for i in range(n):
@@ -27,6 +26,7 @@ def generate_invoices(
         payment_terms_days = rng.choice(PAYMENT_TERMS_OPTIONS)
         due_date = issue_date + timedelta(days=payment_terms_days)
 
+        # Lateness varies per invoice around the vendor's own average.
         lateness_days = rng.gauss(vendor.avg_days_late_historical, LATENESS_STD_DEV)
         actual_payment_date = due_date + timedelta(days=round(lateness_days))
 

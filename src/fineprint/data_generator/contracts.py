@@ -5,8 +5,7 @@ from faker import Faker
 from fineprint.data_generator.clauses import CLAUSE_TEMPLATES, NEUTRAL_CLAUSES
 from fineprint.data_generator.schemas import CLAUSE_RISK_WEIGHTS, Contract
 
-
-# 0-1 risky clauses is most common and all 4 is rare.
+# Most contracts have 0 or 1 risky clause. All 4 is rare.
 RISKY_CLAUSE_COUNT_WEIGHTS = {0: 0.35, 1: 0.30, 2: 0.20, 3: 0.10, 4: 0.05}
 
 

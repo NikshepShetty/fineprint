@@ -4,7 +4,6 @@ from fineprint.data_generator.invoices import generate_invoices
 from fineprint.data_generator.schemas import CLAUSE_RISK_WEIGHTS
 from fineprint.data_generator.vendors import generate_vendors
 
-
 # --- vendors ---
 
 
@@ -66,6 +65,7 @@ def test_generate_invoices_reproducible_with_seed():
 
 
 def test_clause_weights_and_templates_in_sync():
+    # Keeps schemas.py and clauses.py from drifting apart.
     assert set(CLAUSE_RISK_WEIGHTS.keys()) == set(CLAUSE_TEMPLATES.keys())
 
 

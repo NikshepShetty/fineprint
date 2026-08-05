@@ -17,13 +17,14 @@ INDUSTRIES = [
     "energy",
 ]
 
-
+# Most vendors pay fine. Only a small share are chronically late.
 BEHAVIOR_WEIGHTS = {
     "reliable": 0.70,
     "occasionally_late": 0.20,
     "chronically_late": 0.10,
 }
 
+# Days late (average), sampled per vendor within these ranges.
 BEHAVIOR_RANGES = {
     "reliable": (-2, 3),
     "occasionally_late": (3, 10),

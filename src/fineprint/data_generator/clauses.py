@@ -1,4 +1,3 @@
-
 CLAUSE_TEMPLATES: dict[str, str] = {
     "auto_renewal": (
         "This Agreement shall automatically renew for successive one-year terms "

@@ -14,7 +14,6 @@ def main(
     n_contracts: int = 100,
     seed: int | None = 42,
 ) -> None:
-
     DATA_DIR.mkdir(exist_ok=True)
 
     vendors = generate_vendors(n=n_vendors, seed=seed)
