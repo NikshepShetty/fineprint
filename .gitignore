@@ -6,6 +6,11 @@ __pycache__/
 # MacOS
 .DS_Store
 
+# MLflow
+mlflow.db
+mlruns/
+mlartifacts/
+
 # C extensions
 *.so
 
