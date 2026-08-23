@@ -14,7 +14,6 @@ dependencies = [
     "pandas>=2.3.3",
     "pyarrow>=25.0.0",
     "pydantic>=2.13.4",
-    "pyspark>=4.2.0",
     "python-dotenv>=1.2.2",
     "scikit-learn>=1.9.0",
     "sentence-transformers>=5.7.0",
@@ -22,6 +21,12 @@ dependencies = [
     "uvicorn[standard]>=0.51.0",
     "xgboost>=3.4.0",
 ]
+
+[project.optional-dependencies]
+etl = [
+    "pyspark>=4.2.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
