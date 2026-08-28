@@ -227,3 +227,7 @@ __marimo__/
 
 # data files
 data/
+
+.terraform/
+*.tfstate
+*.tfstate.*

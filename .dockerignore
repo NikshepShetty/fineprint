@@ -43,3 +43,6 @@ data/
 mlflow.db
 mlruns/
 mlartifacts/
+
+# Infra folder with terraform
+infra/
