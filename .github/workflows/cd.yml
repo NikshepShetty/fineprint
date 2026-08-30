@@ -64,14 +64,14 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "Waiting for https://$FQDN/health to respond..."
-          for i in $(seq 1 18); do
+          for i in $(seq 1 33); do
             if curl -sf "https://$FQDN/health"; then
               echo "Health check passed"
               exit 0
             fi
-            echo "Not ready yet, retrying in 10s... ($i/18)"
+            echo "Not ready yet, retrying in 10s... ($i/33)"
             sleep 10
           done
 
-          echo "Health check failed after 3 minutes"
+          echo "Health check failed after 5.5 minutes"
           exit 1

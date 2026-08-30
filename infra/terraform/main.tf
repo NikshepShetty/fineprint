@@ -83,12 +83,21 @@ resource "azurerm_container_app" "main" {
       name   = "fineprint-api"
       # placeholder - the CD workflow replaces this with the real built image
       image  = "mcr.microsoft.com/k8se/quickstart:latest"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      cpu    = 1.0
+      memory = "2Gi"
 
       env {
         name        = "ANTHROPIC_API_KEY"
         secret_name = "anthropic-api-key"
+      }
+
+      startup_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = 8000
+        interval_seconds        = 30
+        timeout                 = 5
+        failure_count_threshold = 10
       }
     }
   }
