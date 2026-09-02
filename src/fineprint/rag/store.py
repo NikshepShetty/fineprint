@@ -1,10 +1,23 @@
 from collections.abc import Callable
+from difflib import get_close_matches
 from pathlib import Path
+import re
 from typing import Any
+import unicodedata
 
 import chromadb
 
 DEFAULT_PERSIST_PATH = Path(__file__).resolve().parents[3] / "data" / "chroma"
+_REFERENCE_ID_RE = re.compile(r"\b([a-z]{2,})\s*[-_ ]\s*(\d+)\b", re.IGNORECASE)
+_WORD_RE = re.compile(r"\b[a-zA-Z]{4,}\b")
+
+
+def normalize_references(text: str) -> str:
+    """Canonicalize user-entered reference IDs, e.g. ``ctr-006`` -> ``CTR-006``."""
+    normalized = unicodedata.normalize("NFKC", text)
+    return _REFERENCE_ID_RE.sub(
+        lambda match: f"{match.group(1).upper()}-{match.group(2)}", normalized
+    )
 
 
 class DocumentStore:
@@ -52,14 +65,15 @@ class DocumentStore:
         if isinstance(k, bool) or not isinstance(k, int) or k <= 0:
             raise ValueError(f"k must be a positive integer, got {k}")
 
-        query_embedding = self._embedding_fn([text])[0]
+        query_text = self._expand_query(text)
+        query_embedding = self._embedding_fn([query_text])[0]
 
         results = self._collection.query(
             query_embeddings=[query_embedding],
             n_results=k,
         )
 
-        return [
+        semantic_results = [
             {"id": doc_id, "text": doc, "metadata": meta}
             for doc_id, doc, meta in zip(
                 results["ids"][0],
@@ -68,6 +82,56 @@ class DocumentStore:
                 strict=True,
             )
         ]
+        exact_matches = self._reference_matches(query_text)
+        merged = {record["id"]: record for record in [*exact_matches, *semantic_results]}
+        return list(merged.values())[:k]
+
+    def _reference_matches(self, query: str) -> list[dict]:
+        requested_ids = {
+            normalize_references(match.group(0))
+            for match in _REFERENCE_ID_RE.finditer(query)
+        }
+        if not requested_ids:
+            return []
+
+        corpus = self._collection.get(include=["documents", "metadatas"])
+        return [
+            {"id": doc_id, "text": document, "metadata": metadata}
+            for doc_id, document, metadata in zip(
+                corpus["ids"], corpus["documents"], corpus["metadatas"], strict=True
+            )
+            if normalize_references(str(metadata.get("contract_id", ""))) in requested_ids
+        ]
+
+    def _expand_query(self, text: str) -> str:
+        """Normalize reference IDs and repair high-confidence misspellings.
+
+        The embedding model is case-sensitive enough for IDs and can miss a single
+        typo in a short query.  The vocabulary is derived from the indexed corpus,
+        so corrections are limited to words the assistant can actually retrieve.
+        """
+        normalized = normalize_references(text)
+        corpus = self._collection.get(include=["documents"])
+        vocabulary = {
+            word.lower()
+            for document in corpus.get("documents", [])
+            if document
+            for word in _WORD_RE.findall(document)
+        }
+        if not vocabulary:
+            return normalized
+
+        def correct(match: re.Match[str]) -> str:
+            word = match.group(0)
+            lower_word = word.lower()
+            if lower_word in vocabulary:
+                return word
+            matches = get_close_matches(lower_word, vocabulary, n=1, cutoff=0.84)
+            return matches[0] if matches else word
+
+        corrected = _WORD_RE.sub(correct, normalized)
+        # Keep the original wording too: a correction is only a retrieval aid.
+        return normalized if corrected == normalized else f"{normalized}\n{corrected}"
 
     def count(self) -> int:
         return self._collection.count()

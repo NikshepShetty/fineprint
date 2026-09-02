@@ -7,7 +7,12 @@ from fineprint.rag.ingest import default_embedding_fn
 from fineprint.rag.store import DocumentStore
 
 
-def ask(question: str, store: DocumentStore | None = None, llm=None) -> str:
+def ask(
+    question: str,
+    history: list[dict[str, str]] | None = None,
+    store: DocumentStore | None = None,
+    llm=None,
+) -> str:
     if store is None:
         store = DocumentStore(default_embedding_fn)
         if store.count() == 0:
@@ -27,6 +32,7 @@ def ask(question: str, store: DocumentStore | None = None, llm=None) -> str:
     result = graph.invoke(
         {
             "question": question,
+            "history": history or [],
             "store": store,
             "retrieved": [],
             "tool_calls_made": [],

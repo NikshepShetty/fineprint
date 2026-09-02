@@ -197,6 +197,38 @@ def test_chat_returns_answer_from_injected_ask_fn(seeded_app):
         app.dependency_overrides.clear()
 
 
+def test_chat_passes_conversation_history_to_ask_fn(seeded_app):
+    captured = {}
+
+    def ask_with_history(question, *, history):
+        captured["question"] = question
+        captured["history"] = history
+        return "contextual answer"
+
+    app.dependency_overrides[get_ask_fn] = lambda: ask_with_history
+    try:
+        response = seeded_app.post(
+            "/chat",
+            json={
+                "question": "What about it?",
+                "history": [
+                    {"role": "user", "content": "Tell me about CTR-000."},
+                    {"role": "assistant", "content": "CTR-000 has auto renewal."},
+                ],
+            },
+        )
+        assert response.status_code == 200
+        assert captured == {
+            "question": "What about it?",
+            "history": [
+                {"role": "user", "content": "Tell me about CTR-000."},
+                {"role": "assistant", "content": "CTR-000 has auto renewal."},
+            ],
+        }
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_chat_returns_503_when_store_not_ingested(seeded_app):
     def failing_ask(question):
         raise RuntimeError("Document store is empty. Run ingestion first.")

@@ -9,7 +9,7 @@ from fineprint.rag.ingest import (
     ingest_contracts,
     load_contract_documents,
 )
-from fineprint.rag.store import DocumentStore
+from fineprint.rag.store import DocumentStore, normalize_references
 
 
 def fake_embedding_fn(texts: list[str]) -> list[list[float]]:
@@ -227,3 +227,18 @@ def test_ingest_contracts_creates_one_chunk_per_paragraph(tmp_path):
     results = store.query("Paragraph one.", k=2)
     assert len(results) == 2
     assert all(r["metadata"]["contract_id"] == "CTR-0001" for r in results)
+
+
+def test_query_normalizes_contract_id_and_prioritizes_its_documents(tmp_path):
+    store = DocumentStore(fake_embedding_fn, persist_path=str(tmp_path / "chroma"))
+    store.add(
+        [
+            {"id": "other", "text": "Unrelated text.", "metadata": {"contract_id": "CTR-001"}},
+            {"id": "target", "text": "Payment terms.", "metadata": {"contract_id": "CTR-006"}},
+        ]
+    )
+
+    results = store.query("Tell me about ctr-006", k=1)
+
+    assert results[0]["id"] == "target"
+    assert normalize_references("ctr_006") == "CTR-006"

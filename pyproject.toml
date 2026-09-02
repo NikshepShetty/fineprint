@@ -18,6 +18,7 @@ dependencies = [
     "scikit-learn>=1.9.0",
     "sentence-transformers>=5.7.0",
     "shap>=0.52.0",
+    "slowapi>=0.1.10",
     "uvicorn[standard]>=0.51.0",
     "xgboost>=3.4.0",
 ]
